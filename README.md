@@ -18,7 +18,7 @@
 
 `tmenu` is a minimal X11 menu launcher written in POSIX C99. It reads a newline-delimited list of items from `stdin`, lets you filter by typing, and executes the selected entry via `/bin/sh -c`.
 
-The entire implementation fits in **two source files** and **under 250 lines**. The only runtime dependency is Xlib.
+The entire implementation fits in **a single source file** and **under 250 lines**. The only runtime dependency is Xlib.
 
 ---
 
@@ -42,9 +42,9 @@ The entire implementation fits in **two source files** and **under 250 lines**. 
 
 **Key properties:**
 
-- Two source files, under 250 lines of C99
+- Single source file, under 250 lines of C99
 - Pure Xlib - no Xft, no Xinerama, no fontconfig
-- All settings in `tmenu.h`, applied at compile time
+- All settings defined at the top of `tmenu.c`, applied at compile time
 - Keyboard focus on launch — start typing immediately
 - Executes the selected item or typed text directly via `/bin/sh -c`
 
@@ -117,7 +117,6 @@ Navigate with arrow keys or filter by typing. Press `Enter` to execute the selec
 | `-b`      | Show menu at the bottom of the screen (default: top) |
 | `-l N`    | Show a vertical list with `N` visible lines          |
 | `-p text` | Display a prompt to the left of the input field      |
-| `-v`      | Print version string and exit                        |
 
 ### Examples
 
@@ -149,31 +148,31 @@ printf "suspend\nreboot\npoweroff\n" | tmenu -b -p "power: "
 | `Ctrl+K`             | Select next item (vertical list)          |
 | `Ctrl+J`             | Select previous item (vertical list)      |
 
-Key handling is a sthttps://github.com/tinyopsec/tmenuraightforward `switch` in `tmenu.c`. To remap keys, edit the source and recompile.
+Key handling is a straightforward `switch` in `tmenu.c`. To remap keys, edit the source and recompile.
 
 ---
 
 ## Configuration
 
-`tmenu` has no runtime configuration file. All settings are defined as macros in `tmenu.h` and take effect after recompilation:
+`tmenu` has no runtime configuration file. All settings are defined as macros at the top of `tmenu.c` and take effect after recompilation:
 
 ```sh
-$EDITOR tmenu.h
+$EDITOR tmenu.c
 make && sudo make install
 ```
 
 ### Available settings
 
-| Setting  | Default                                       | Description                           |
-|----------|-----------------------------------------------|---------------------------------------|
-| `FONT`   | `"-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"`   | X11 core font string                  |
-| `FGNORM` | `"#bbbbbb"`                                   | Normal item foreground color          |
-| `BGNORM` | `"#222222"`                                   | Normal item background color          |
-| `FGSEL`  | `"#eeeeee"`                                   | Selected item foreground color        |
-| `BGSEL`  | `"#005577"`                                   | Selected item background color        |
-| `TOP`    | `1`                                           | `1` = top of screen, `0` = bottom     |
-| `LINES`  | `0`                                           | Default line count (`0` = horizontal) |
-| `PROMPT` | `NULL`                                        | Default prompt string                 |
+| Setting   | Default                                       | Description                           |
+|-----------|-----------------------------------------------|---------------------------------------|
+| `FONT`    | `"-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"`   | X11 core font string                  |
+| `FGNORM`  | `"#bbbbbb"`                                   | Normal item foreground color          |
+| `BGNORM`  | `"#222222"`                                   | Normal item background color          |
+| `FGSEL`   | `"#eeeeee"`                                   | Selected item foreground color        |
+| `BGSEL`   | `"#005577"`                                   | Selected item background color        |
+| `TOP`     | `1`                                           | `1` = top of screen, `0` = bottom     |
+| `LINES`   | `0`                                           | Default line count (`0` = horizontal) |
+| `PROMPT`  | `NULL`                                        | Default prompt string                 |
 
 To increase the maximum number of items or input length, adjust `MAXITEMS` and `MAXTEXT` in `tmenu.c`.
 
@@ -208,6 +207,7 @@ Features are added by patching the source, not by adding runtime options. Change
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left)](https://www.star-history.com/?repos=tinyopsec%2Ftmenu&type=date&legend=top-left)
+
 ---
 
 ## License
