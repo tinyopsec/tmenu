@@ -1,0 +1,12 @@
+#!/bin/sh
+cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+cache="$cachedir/tmenu_run"
+
+[ ! -e "$cachedir" ] && mkdir -p "$cachedir"
+
+IFS=:
+if stest -dqr -n "$cache" $PATH 2>/dev/null; then
+    cat "$cache"
+else
+    stest -flx $PATH 2>/dev/null | sort -u | tee "$cache"
+fi | tmenu "$@"
