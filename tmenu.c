@@ -25,7 +25,7 @@ typedef struct { char *s; } It;
 
 static Display *dp;
 static Window w, root;
-static int scr, sw, sh, wh, ww;
+static int scr, sh, wh, ww;
 static GC gc;
 static Pixmap pm;
 static XFontStruct *fs;
@@ -50,38 +50,32 @@ static unsigned long xc(const char *s) {
 
 static void rd(void) {
 	char buf[BUFSZ];
-	char *p;
 	while(fgets(buf, sizeof buf, stdin)) {
 		int l = strlen(buf);
 		if(l && buf[l-1] == '\n') buf[--l] = 0;
 		if(!l) continue;
-		p = strdup(buf);
-		if(!p) exit(1);
-		its[ni].s = p;
+		if(!(its[ni].s = strdup(buf))) exit(1);
 		if(++ni >= MAXITEMS) break;
 	}
 }
 
 static void fi(void) {
-	int i, p, q;
+	int i, j, p, q;
 	char lo[MAXTEXT], tmp[BUFSZ];
 	sel = 0; hoff = 0;
-	for(i = 0; tb[i]; i++) lo[i] = tolower((unsigned char)tb[i]);
-	lo[i] = 0;
+	for(i = 0; (lo[i] = tolower((unsigned char)tb[i])); i++);
 	if(!tl) {
-		for(nm = 0; nm < ni;) mt[nm] = &its[nm], nm++;
+		for(nm = 0; nm < ni; nm++) mt[nm] = &its[nm];
 		return;
 	}
-	p = 0; q = 0;
-	for(i = 0; i < ni; i++) {
-		int j;
-		for(j = 0; its[i].s[j]; j++) tmp[j] = tolower((unsigned char)its[i].s[j]);
-		tmp[j] = 0;
-		if(!strstr(tmp, lo)) continue;
+	for(p = 0, i = 0; i < ni; i++) {
+		for(j = 0; (tmp[j] = tolower((unsigned char)its[i].s[j])); j++);
 		if(strncmp(tmp, lo, tl) == 0) mt[p++] = &its[i];
-		else mt[MAXITEMS/2 + q++] = &its[i];
 	}
-	for(i = 0; i < q; i++) mt[p + i] = mt[MAXITEMS/2 + i];
+	for(q = 0, i = 0; i < ni; i++) {
+		for(j = 0; (tmp[j] = tolower((unsigned char)its[i].s[j])); j++);
+		if(strncmp(tmp, lo, tl) != 0 && strstr(tmp, lo)) mt[p + q++] = &its[i];
+	}
 	nm = p + q;
 }
 
@@ -105,7 +99,7 @@ static void dr(void) {
 	if(ln > 0) {
 		for(i = 0; i < nm && i < ln; i++) {
 			int sl = strlen(mt[i]->s);
-			y = fh + fh * i;
+			y = fh * (i + 1);
 			if(i == sel) {
 				XSetForeground(dp, gc, col[3]);
 				XFillRectangle(dp, pm, gc, 0, y, ww, fh);
@@ -137,7 +131,7 @@ static void dr(void) {
 
 static void run(const char *cmd) {
 	pid_t pid;
-	if(!cmd || !*cmd) exit(1);
+	if(!*cmd) exit(1);
 	pid = fork();
 	if(pid < 0) exit(1);
 	if(pid == 0) {
@@ -149,17 +143,18 @@ static void run(const char *cmd) {
 }
 
 static void scroll_to(int s) {
-	int mx, i, cx2;
+	int ox, mx, i;
 	if(ln > 0 || nm == 0) { sel = s; return; }
 	if(s < 0) s = 0;
 	if(s >= nm) s = nm - 1;
 	if(s < hoff) hoff = s;
-	cx2 = (pr && *pr ? XTextWidth(fs, pr, strlen(pr)) + 8 : 0)
-	      + 4 + XTextWidth(fs, tb, tl) + 12;
+	ox = (pr && *pr ? XTextWidth(fs, pr, strlen(pr)) + 8 : 0)
+	     + 4 + XTextWidth(fs, tb, tl) + 12;
 	while(1) {
-		mx = cx2;
+		mx = ox;
 		for(i = hoff; i < nm; i++) {
-			int iw = XTextWidth(fs, mt[i]->s, strlen(mt[i]->s)) + 8;
+			int sl = strlen(mt[i]->s);
+			int iw = XTextWidth(fs, mt[i]->s, sl) + 8;
 			if(mx + iw > ww) break;
 			mx += iw;
 		}
@@ -181,10 +176,10 @@ static void kp(XKeyEvent *e) {
 			while(tl && tb[tl-1] != ' ') tb[--tl] = 0;
 			fi(); dr(); return;
 		case XK_k:
-			if(sel < nm - 1) { scroll_to(sel + 1); dr(); }
+			if(sel > 0) { scroll_to(sel - 1); dr(); }
 			return;
 		case XK_j:
-			if(sel > 0) { scroll_to(sel - 1); dr(); }
+			if(sel < nm - 1) { scroll_to(sel + 1); dr(); }
 			return;
 		}
 	}
@@ -193,7 +188,7 @@ static void kp(XKeyEvent *e) {
 	case XK_Return:
 	case XK_KP_Enter:
 		run(nm > 0 ? mt[sel]->s : tb);
-		break;
+		return;
 	case XK_BackSpace:
 		if(tl) { tb[--tl] = 0; fi(); dr(); }
 		return;
@@ -206,7 +201,7 @@ static void kp(XKeyEvent *e) {
 		if(sel < nm - 1) { scroll_to(sel + 1); dr(); }
 		return;
 	default:
-		if(buf[0] && !iscntrl((unsigned char)buf[0]) && tl < MAXTEXT - 1) {
+		if(!iscntrl((unsigned char)buf[0]) && tl < MAXTEXT - 1) {
 			tb[tl++] = buf[0];
 			tb[tl] = 0;
 			fi(); dr();
@@ -239,13 +234,12 @@ int main(int argc, char *argv[]) {
 	if(!(dp = XOpenDisplay(NULL))) return 1;
 	scr = DefaultScreen(dp);
 	root = RootWindow(dp, scr);
-	sw = DisplayWidth(dp, scr);
 	sh = DisplayHeight(dp, scr);
 	if(!(fs = XLoadQueryFont(dp, FONT)))
 		if(!(fs = XLoadQueryFont(dp, "fixed"))) return 1;
 	fa = fs->ascent;
 	fh = fs->ascent + fs->descent + 2;
-	ww = sw;
+	ww = DisplayWidth(dp, scr);
 	wh = ln > 0 ? fh * (ln + 1) : fh;
 	col[0] = xc(FGNORM); col[1] = xc(BGNORM);
 	col[2] = xc(FGSEL);  col[3] = xc(BGSEL);
