@@ -1,19 +1,32 @@
 #!/bin/sh
-cachedir="${XDG_CACHE_HOME:-"$HOME/.cache"}"
+cachedir="${XDG_CACHE_HOME:-$HOME/.cache}"
 cache="$cachedir/tmenu_run"
 [ -d "$cachedir" ] || mkdir -p "$cachedir"
 _seen=
 _dirs=
 IFS=:
-for _d in /bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin:/opt/bin:/opt/local/bin:$PATH; do
+for _d in $PATH; do
+	[ -d "$_d" ] || continue
 	case " $_seen " in
 		*" $_d "*) ;;
 		*) _seen="$_seen $_d"; _dirs="$_dirs${_dirs:+ }$_d" ;;
 	esac
 done
 unset IFS
-if [ ! -e "$cache" ] || stest -dq -n "$cache" $_dirs 2>/dev/null; then
-	stest -flx $_dirs 2>/dev/null | sort -u | tee "$cache"
+_stale=1
+if [ -e "$cache" ]; then
+	_stale=0
+	IFS=' '
+	for _d in $_dirs; do
+		[ -d "$_d" ] && [ "$_d" -nt "$cache" ] && { _stale=1; break; }
+	done
+	unset IFS
+fi
+if [ "$_stale" -eq 1 ]; then
+	IFS=' '
+	find $_dirs -maxdepth 1 -type f -perm -u+x 2>/dev/null \
+		| sed 's|.*/||' | sort -u | tee "$cache"
+	unset IFS
 else
 	cat "$cache"
 fi | tmenu "$@"
