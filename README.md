@@ -95,18 +95,143 @@ sudo make uninstall
 ```
 
 ---
-
 ## Usage
 
-Pipe a newline-delimited list of items to `tmenu` on `stdin`:
+`tmenu` reads newline-delimited items from `stdin`, filters them interactively, and executes the selected entry via `/bin/sh -c`.
+
+---
+
+### Basic usage
+
+Use the bundled launcher:
 
 ```sh
-# Use the bundled launcher script
 tmenu_run
-
-# Or pipe items manually
-printf "st\ndmenu_run\nfirefox\n" | tmenu
 ```
+
+Or provide input manually:
+
+```sh
+printf "st\nfirefox\nhtop\n" | tmenu
+```
+
+Select an item with arrow keys and press `Enter` to execute.
+
+If the input does not match any item, the typed text is executed directly as a shell command.
+
+---
+
+### Integration with window managers
+
+`tmenu` is typically used as an application launcher.
+
+#### Example: replace `dmenu_run` in your WM
+
+In your config (e.g. `swm.h`, `dwm/config.h`):
+
+```c
+static const char *dmenucmd[] = { "tmenu_run", NULL };
+```
+
+Recompile your WM:
+
+```sh
+make && sudo make install
+```
+
+After this, your launcher keybinding (usually `Mod + d`) will invoke `tmenu_run`.
+
+---
+
+### Using custom install paths
+
+If `tmenu_run` is installed in `~/.local/bin`:
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Ensure this is set **before** your window manager starts (e.g. in `.xinitrc`), otherwise the launcher will fail silently.
+
+---
+
+### `.xinitrc` example
+
+```sh
+# optional: extend PATH for local binaries
+export PATH="$HOME/.local/bin:$PATH"
+
+# background services
+picom &
+feh --bg-scale ~/wallpaper.png &
+
+exec swm
+```
+
+---
+
+### Command-line options
+
+| Option    | Description                                     |
+| --------- | ----------------------------------------------- |
+| `-b`      | Show menu at the bottom (default: top)          |
+| `-l N`    | Vertical list with `N` visible lines            |
+| `-p text` | Prompt displayed to the left of the input field |
+
+---
+
+### Examples
+
+Vertical launcher with prompt:
+
+```sh
+printf "st\nfirefox\nthunderbird\n" | tmenu -l 5 -p "run: "
+```
+
+Power menu:
+
+```sh
+printf "suspend\nreboot\npoweroff\n" | tmenu -p "power: "
+```
+
+Bottom-aligned menu:
+
+```sh
+printf "lock\nlogout\n" | tmenu -b -p "session: "
+```
+
+---
+
+### Debugging
+
+Check that the launcher is available:
+
+```sh
+which tmenu_run
+```
+
+Run directly:
+
+```sh
+tmenu_run
+```
+
+If nothing happens on keybind — verify:
+
+* `$PATH`
+* WM config (`dmenucmd`)
+* binary permissions (`chmod +x`)
+
+---
+
+### Behavior summary
+
+* Input source: `stdin`
+* Selection: keyboard (filter + navigation)
+* Execution: `/bin/sh -c`
+* Fallback: executes raw input if no match
+
+---
 
 Navigate with arrow keys or filter by typing. Press `Enter` to execute the selected item. If the typed text does not match any item, `Enter` executes it directly as a shell command.
 
