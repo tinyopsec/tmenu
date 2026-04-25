@@ -1,67 +1,60 @@
 <div align="center">
 
-  # tmenu
-
 **Minimal X11 menu launcher - suckless, auditable, fast.**
 
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/tmenu/tmenu.png" width="720" alt="tmenu in action — horizontal launcher with filter input">
+<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/tmenu/tmenu.png" width="720" alt="tmenu in action">
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![C99](https://img.shields.io/badge/C-C99%20%2F%20POSIX-lightgrey.svg)]()
-[![LOC](https://img.shields.io/badge/source-under%20250%20lines-brightgreen.svg)]()
-[![Issues](https://img.shields.io/github/issues/tinyopsec/tmenu.svg)](https://github.com/tinyopsec/tmenu/issues)
-[![Stars](https://img.shields.io/github/stars/tinyopsec/tmenu.svg)](https://github.com/tinyopsec/tmenu/stargazers)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square&color=4078c0)](LICENSE)
+[![C99](https://img.shields.io/badge/C-C99%2FPOSIX-lightgrey?style=flat-square&color=6a4c93)](/)
+[![LOC](https://img.shields.io/badge/source-under%20300%20lines-brightgreen?style=flat-square&color=2ea44f)](tmenu.c)
+[![Issues](https://img.shields.io/github/issues/tinyopsec/tmenu?style=flat-square&color=e36209)](https://github.com/tinyopsec/tmenu/issues)
+[![Stars](https://img.shields.io/github/stars/tinyopsec/tmenu?style=flat-square&color=f0c30f)](https://github.com/tinyopsec/tmenu/stargazers)
+[![Minimalist](https://img.shields.io/badge/philosophy-suckless-informational?style=flat-square&color=005577)](https://suckless.org)
 
 </div>
 
 ---
 
-`tmenu` is a minimal X11 menu launcher written in POSIX C99. It reads a newline-delimited list of items from `stdin`, lets you filter by typing, and executes the selected entry via `/bin/sh -c`.
-
-The entire implementation fits in **a single source file** and **under 250 lines**. The only runtime dependency is Xlib.
+`tmenu` reads a newline-delimited list of items from `stdin`, lets you filter by typing, and executes the selected entry via `/bin/sh -c`. The entire implementation fits in a single C source file under 300 lines. The only runtime dependency is Xlib.
 
 ---
 
 ## Contents
 
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Key Bindings](#key-bindings)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [Related Projects](#related-projects)
-- [License](#license)
+- [Why tmenu?](#-why-tmenu)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Key Bindings](#-key-bindings)
+- [Configuration](#-configuration)
+- [Contributing](#-contributing)
+- [Related Projects](#-related-projects)
+- [Star History](#star-history)
+- [License](#-license)
 
 ---
 
-## Overview
+## Why tmenu?
 
-`tmenu` follows the suckless philosophy: small, auditable, compile-time configured. There is no config file parser, no IPC, no scripting layer, and no hidden complexity. Read the source - understand the program.
+| Feature | tmenu | dmenu | rofi |
+|---|---|---|---|
+| Source size | under 300 lines | ~2500 lines | ~15000 lines |
+| Dependencies | Xlib only | Xlib, Xft | Xlib, cairo, pango, ... |
+| Config file | none (compile-time) | none (compile-time) | yes |
+| Executes typed text | yes | yes | no |
+| Launch overhead | minimal | minimal | moderate |
+| Auditable in an hour | yes | hard | no |
 
-**Key properties:**
-
-- Single source file, under 250 lines of C99
-- Pure Xlib - no Xft, no Xinerama, no fontconfig
-- All settings defined at the top of `tmenu.c`, applied at compile time
-- Keyboard focus on launch — start typing immediately
-- Executes the selected item or typed text directly via `/bin/sh -c`
-
-**Compared to dmenu:** no external launcher wrapper required, smaller codebase, no Xft dependency.
-
-**Supported platforms:** Linux (Arch, Void, Debian), OpenBSD, FreeBSD, NetBSD, macOS (XQuartz), and any POSIX system with X11.
+`tmenu` follows the suckless philosophy: small, auditable, compile-time configured. No config file parser, no IPC, no scripting layer. Read the source - understand the program.
 
 ---
 
-## Requirements
+## Quick Start
 
-| Dependency | Arch Linux | Debian / Ubuntu   |
-|------------|------------|-------------------|
-| Xlib       | `libx11`   | `libx11-dev`      |
-| C compiler | `gcc`      | `build-essential` |
-
-No other libraries are needed at runtime.
+```sh
+git clone https://github.com/tinyopsec/tmenu && cd tmenu && make && sudo make install
+tmenu_run
+```
 
 ---
 
@@ -76,236 +69,190 @@ make
 sudo make install
 ```
 
-Installs to `/usr/local/bin/tmenu`. To change the install prefix:
+Installs to `/usr/local/bin/`. To change the prefix:
 
 ```sh
 sudo make install PREFIX=/usr
 ```
 
-### AUR (Arch Linux)
-
-```sh
-yay -S tmenu
-```
-
-### Uninstall
+Uninstall:
 
 ```sh
 sudo make uninstall
 ```
 
----
-## Usage
+### Requirements
 
-`tmenu` reads newline-delimited items from `stdin`, filters them interactively, and executes the selected entry via `/bin/sh -c`.
+| Dependency | ![Arch](https://img.shields.io/badge/Arch-1793D1?style=flat-square&logo=arch-linux&logoColor=white) | ![Debian](https://img.shields.io/badge/Debian-A81D33?style=flat-square&logo=debian&logoColor=white) |
+|---|---|---|
+| Xlib | `libx11` | `libx11-dev` |
+| C compiler | `gcc` | `build-essential` |
 
----
-
-### Basic usage
-
-Use the bundled launcher:
+### ![AUR](https://img.shields.io/badge/AUR-1793D1?style=flat-square&logo=arch-linux&logoColor=white) Arch Linux (AUR)
 
 ```sh
-tmenu_run
+yay -S tmenu
 ```
 
-Or provide input manually:
+### ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) macOS (XQuartz)
+
+Install [XQuartz](https://www.xquartz.org/), then build from source as above.
+
+### ![BSD](https://img.shields.io/badge/BSD-AB2B28?style=flat-square) OpenBSD / FreeBSD / NetBSD
+
+Install `libX11` via ports or pkgsrc, then build from source.
+
+---
+
+## Usage
+
+### Basic
 
 ```sh
+# Use the bundled launcher (scans $PATH):
+tmenu_run
+
+# Pipe items manually:
 printf "st\nfirefox\nhtop\n" | tmenu
 ```
 
-Select an item with arrow keys and press `Enter` to execute.
+Type to filter, navigate with arrow keys, press `Enter` to execute. If the typed text matches no item, it is executed directly as a shell command.
 
-If the input does not match any item, the typed text is executed directly as a shell command.
+### Flags
 
----
+| Flag | Description |
+|---|---|
+| `-b` | Show menu at the bottom of the screen |
+| `-l N` | Vertical list with `N` visible lines |
+| `-p text` | Prompt displayed left of the input field |
 
-### Integration with window managers
+### Examples
 
-`tmenu` is typically used as an application launcher.
+```sh
+# Vertical launcher with prompt:
+printf "st\nfirefox\nthunderbird\n" | tmenu -l 5 -p "run: "
 
-#### Example: replace `dmenu_run` in your WM
+# Power menu at bottom:
+printf "suspend\nreboot\npoweroff\n" | tmenu -b -p "power: "
 
-In your config (e.g. `swm.h`, `dwm/config.h`):
+# Session menu:
+printf "lock\nlogout\n" | tmenu -b -p "session: "
+```
+
+### Window manager integration
+
+**dwm / swm:**
 
 ```c
 static const char *dmenucmd[] = { "tmenu_run", NULL };
 ```
 
-Recompile your WM:
+Recompile your WM after editing the config.
 
-```sh
-make && sudo make install
+**i3:**
+
+```
+bindsym $mod+d exec tmenu_run
 ```
 
-After this, your launcher keybinding (usually `Mod + d`) will invoke `tmenu_run`.
-
----
-
-### Using custom install paths
-
-If `tmenu_run` is installed in `~/.local/bin`:
+**`.xinitrc` example:**
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
-```
-
-Ensure this is set **before** your window manager starts (e.g. in `.xinitrc`), otherwise the launcher will fail silently.
-
----
-
-### `.xinitrc` example
-
-```sh
-# optional: extend PATH for local binaries
-export PATH="$HOME/.local/bin:$PATH"
-
-# background services
 picom &
 feh --bg-scale ~/wallpaper.png &
-
 exec swm
 ```
 
----
+<details>
+<summary>Debugging</summary>
 
-### Command-line options
-
-| Option    | Description                                     |
-| --------- | ----------------------------------------------- |
-| `-b`      | Show menu at the bottom (default: top)          |
-| `-l N`    | Vertical list with `N` visible lines            |
-| `-p text` | Prompt displayed to the left of the input field |
-
----
-
-### Examples
-
-Vertical launcher with prompt:
+Check binary is available:
 
 ```sh
-printf "st\nfirefox\nthunderbird\n" | tmenu -l 5 -p "run: "
-```
-
-Power menu:
-
-```sh
-printf "suspend\nreboot\npoweroff\n" | tmenu -p "power: "
-```
-
-Bottom-aligned menu:
-
-```sh
-printf "lock\nlogout\n" | tmenu -b -p "session: "
-```
-
----
-
-### Debugging
-
-Check that the launcher is available:
-
-```sh
+which tmenu
 which tmenu_run
 ```
 
-Run directly:
+Run the launcher directly to test:
 
 ```sh
 tmenu_run
 ```
 
-If nothing happens on keybind — verify:
+If the keybinding does nothing, check:
 
-* `$PATH`
-* WM config (`dmenucmd`)
-* binary permissions (`chmod +x`)
+- `$PATH` is set before your WM starts (set it in `.xinitrc`)
+- WM config references `tmenu_run` correctly
+- Binary is executable: `chmod +x /usr/local/bin/tmenu_run`
 
----
+Test with explicit input:
 
-### Behavior summary
-
-* Input source: `stdin`
-* Selection: keyboard (filter + navigation)
-* Execution: `/bin/sh -c`
-* Fallback: executes raw input if no match
-
----
-
-Navigate with arrow keys or filter by typing. Press `Enter` to execute the selected item. If the typed text does not match any item, `Enter` executes it directly as a shell command.
-
-### Command-line options
-
-| Option    | Description                                          |
-|-----------|------------------------------------------------------|
-| `-b`      | Show menu at the bottom of the screen (default: top) |
-| `-l N`    | Show a vertical list with `N` visible lines          |
-| `-p text` | Display a prompt to the left of the input field      |
-
-### Examples
-
-Vertical list with a prompt:
-
-```sh
-printf "st\nfirefox\nthunderbird\n" | tmenu -p "run: " -l 5
+```console
+$ printf "echo hello\n" | tmenu
 ```
 
-Bottom-aligned horizontal menu:
-
-```sh
-printf "suspend\nreboot\npoweroff\n" | tmenu -b -p "power: "
-```
+</details>
 
 ---
 
-## Key Bindings
+## ⌨ Key Bindings
 
-| Key                  | Action                                    |
-|----------------------|-------------------------------------------|
-| `Enter` / `KP_Enter` | Execute selected item or typed text       |
-| `Escape`             | Exit without executing                    |
-| `BackSpace`          | Delete character left of cursor           |
-| `Up` / `Left`        | Move selection up or left                 |
-| `Down` / `Right`     | Move selection down or right              |
-| `Ctrl+U`             | Clear entire input field                  |
-| `Ctrl+W`             | Delete one word left of cursor            |
-| `Ctrl+K`             | Select next item (vertical list)          |
-| `Ctrl+J`             | Select previous item (vertical list)      |
+| Key | Action |
+|---|---|
+| `Enter` / `KP_Enter` | Execute selected item or typed text |
+| `Escape` | Exit without executing |
+| `BackSpace` | Delete character left of cursor |
+| `Up` / `Left` | Move selection up or left |
+| `Down` / `Right` | Move selection down or right |
+| `Ctrl+U` | Clear entire input field |
+| `Ctrl+W` | Delete one word left of cursor |
+| `Ctrl+K` | Move selection up (vertical list) |
+| `Ctrl+J` | Move selection down (vertical list) |
 
-Key handling is a straightforward `switch` in `tmenu.c`. To remap keys, edit the source and recompile.
+To remap keys, edit the `kp()` function in `tmenu.c` and recompile.
 
 ---
 
-## Configuration
+## ⚙ Configuration
 
-`tmenu` has no runtime configuration file. All settings are defined as macros at the top of `tmenu.c` and take effect after recompilation:
+`tmenu` has no runtime config file. All settings are macros at the top of `tmenu.c`. Edit and recompile to apply changes:
 
 ```sh
 $EDITOR tmenu.c
 make && sudo make install
 ```
 
-### Available settings
+### Compile-time settings
 
-| Setting   | Default                                       | Description                           |
-|-----------|-----------------------------------------------|---------------------------------------|
-| `FONT`    | `"-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"`   | X11 core font string                  |
-| `FGNORM`  | `"#bbbbbb"`                                   | Normal item foreground color          |
-| `BGNORM`  | `"#222222"`                                   | Normal item background color          |
-| `FGSEL`   | `"#eeeeee"`                                   | Selected item foreground color        |
-| `BGSEL`   | `"#005577"`                                   | Selected item background color        |
-| `TOP`     | `1`                                           | `1` = top of screen, `0` = bottom     |
-| `LINES`   | `0`                                           | Default line count (`0` = horizontal) |
-| `PROMPT`  | `NULL`                                        | Default prompt string                 |
+| Macro | Default | Description |
+|---|---|---|
+| `FONT` | `"-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"` | X11 core font string |
+| `FGNORM` | `"#bbbbbb"` | Normal item foreground color |
+| `BGNORM` | `"#222222"` | Normal item background color |
+| `FGSEL` | `"#eeeeee"` | Selected item foreground color |
+| `BGSEL` | `"#005577"` | Selected item background color |
+| `TOP` | `1` | `1` = top of screen, `0` = bottom |
+| `LINES` | `0` | Default line count (`0` = horizontal) |
+| `PROMPT` | `NULL` | Default prompt string |
 
-To increase the maximum number of items or input length, adjust `MAXITEMS` and `MAXTEXT` in `tmenu.c`.
+To increase limits, adjust `MAXITEMS` (default: 65536) and `MAXTEXT` (default: 256) in `tmenu.c`.
+
+### Example customization
+
+```diff
+-#define BGSEL   "#005577"
++#define BGSEL   "#8b0000"
+
+-#define FONT    "-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"
++#define FONT    "-*-terminus-medium-r-*-*-14-*-*-*-*-*-*-*"
+```
 
 ---
 
 ## Contributing
 
-Bug reports and patches are welcome via [GitHub issues](https://github.com/tinyopsec/tmenu/issues) and pull requests.
+Bug reports and patches are welcome via [GitHub Issues](https://github.com/tinyopsec/tmenu/issues) and pull requests.
 
 ### Code style
 
@@ -321,20 +268,23 @@ Features are added by patching the source, not by adding runtime options. Change
 
 ## Related Projects
 
-| Project      | Description                              | Link |
-|--------------|------------------------------------------|------|
-| dmenu        | The original dynamic menu for X         | [suckless.org](https://tools.suckless.org/dmenu/) |
-| suckless.org | Philosophy and tooling behind tmenu      | [suckless.org](https://suckless.org) |
-| Xlib manual  | Reference for X11 programming            | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html) |
+| Project | Description | Link |
+|---|---|---|
+| dmenu | The original dynamic menu for X | [suckless.org](https://tools.suckless.org/dmenu/) |
+| suckless.org | Philosophy behind tmenu | [suckless.org](https://suckless.org) |
+| Xlib manual | Reference for X11 programming | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html) |
 
 ---
-
 ## Star History
-
-[![Star History Chart](https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left)](https://www.star-history.com/?repos=tinyopsec%2Ftmenu&type=date&legend=top-left)
-
+<a href="https://www.star-history.com/?repos=tinyopsec%2Ftmenu&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left" />
+ </picture>
+</a>
 ---
 
-## License
+## 📄 License
 
 MIT. See [LICENSE](LICENSE) for details.
