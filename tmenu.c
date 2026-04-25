@@ -53,6 +53,7 @@ static void rd(void) {
 	while(fgets(buf, sizeof buf, stdin)) {
 		int l = strlen(buf);
 		if(l && buf[l-1] == '\n') buf[--l] = 0;
+		if(l && buf[l-1] == '\r') buf[--l] = 0;
 		if(!l) continue;
 		if(!(its[ni].s = strdup(buf))) exit(1);
 		if(++ni >= MAXITEMS) break;
@@ -165,7 +166,7 @@ static void scroll_to(int s) {
 }
 
 static void kp(XKeyEvent *e) {
-	char buf[32];
+	char buf[32] = {0};
 	KeySym ks;
 	XLookupString(e, buf, sizeof buf, &ks, NULL);
 	if(e->state & ControlMask) {

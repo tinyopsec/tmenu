@@ -1,32 +1,41 @@
 #!/bin/sh
-cachedir="${XDG_CACHE_HOME:-$HOME/.cache}"
-cache="$cachedir/tmenu_run"
-[ -d "$cachedir" ] || mkdir -p "$cachedir"
-_seen=
-_dirs=
+
+[ -n "$HOME" ] || { printf '%s\n' "HOME is not set" >&2; exit 1; }
+
+cachedir=${XDG_CACHE_HOME:-"$HOME/.cache"}
+cache=$cachedir/tmenu_run
+tmp=$cache.$$
+
+[ -d "$cachedir" ] || mkdir -p "$cachedir" || {
+	printf '%s\n' "cannot create cache dir: $cachedir" >&2
+	exit 1
+}
+
+: > "$tmp" || {
+	printf '%s\n' "cannot write cache: $tmp" >&2
+	exit 1
+}
+
+oldifs=$IFS
 IFS=:
-for _d in $PATH; do
-	[ -d "$_d" ] || continue
-	case " $_seen " in
-		*" $_d "*) ;;
-		*) _seen="$_seen $_d"; _dirs="$_dirs${_dirs:+ }$_d" ;;
-	esac
-done
-unset IFS
-_stale=1
-if [ -e "$cache" ]; then
-	_stale=0
-	IFS=' '
-	for _d in $_dirs; do
-		[ -d "$_d" ] && [ "$_d" -nt "$cache" ] && { _stale=1; break; }
+
+{
+	for dir in $PATH; do
+		[ -d "$dir" ] && [ -r "$dir" ] || continue
+
+		for f in "$dir"/* "$dir"/.[!.]* "$dir"/..?*; do
+			[ -f "$f" ] || continue
+			[ -x "$f" ] || continue
+			printf '%s\n' "${f##*/}"
+		done
 	done
-	unset IFS
-fi
-if [ "$_stale" -eq 1 ]; then
-	IFS=' '
-	find $_dirs -maxdepth 1 -type f -perm -u+x 2>/dev/null \
-		| sed 's|.*/||' | sort -u | tee "$cache"
-	unset IFS
-else
-	cat "$cache"
-fi | tmenu "$@"
+} | LC_ALL=C sort -u > "$tmp"
+
+IFS=$oldifs
+
+mv -f "$tmp" "$cache" || {
+	printf '%s\n' "cannot update cache: $cache" >&2
+	exit 1
+}
+
+tmenu "$@" < "$cache"
