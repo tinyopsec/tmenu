@@ -1,0 +1,41 @@
+#!/bin/sh
+
+[ -n "$HOME" ] || { printf '%s\n' "HOME is not set" >&2; exit 1; }
+
+cachedir=${XDG_CACHE_HOME:-"$HOME/.cache"}
+cache=$cachedir/tmenu_run
+tmp=$cache.$$
+
+[ -d "$cachedir" ] || mkdir -p "$cachedir" || {
+	printf '%s\n' "cannot create cache dir: $cachedir" >&2
+	exit 1
+}
+
+: > "$tmp" || {
+	printf '%s\n' "cannot write cache: $tmp" >&2
+	exit 1
+}
+
+oldifs=$IFS
+IFS=:
+
+{
+	for dir in $PATH; do
+		[ -d "$dir" ] && [ -r "$dir" ] || continue
+
+		for f in "$dir"/* "$dir"/.[!.]* "$dir"/..?*; do
+			[ -f "$f" ] || continue
+			[ -x "$f" ] || continue
+			printf '%s\n' "${f##*/}"
+		done
+	done
+} | LC_ALL=C sort -u > "$tmp"
+
+IFS=$oldifs
+
+mv -f "$tmp" "$cache" || {
+	printf '%s\n' "cannot update cache: $cache" >&2
+	exit 1
+}
+
+tmenu "$@" < "$cache" | sh
