@@ -8,13 +8,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-005577?style=flat&labelColor=222222&logo=opensourceinitiative&logoColor=005577" alt="license MIT">
-  <img src="https://img.shields.io/badge/C99%20%2F%20POSIX-bbbbbb?style=flat&label=lang&labelColor=222222&logo=c&logoColor=bbbbbb" alt="C99 / POSIX">
   <img src="https://img.shields.io/badge/236%20lines-5599bb?style=flat&label=source&labelColor=222222&logo=files&logoColor=5599bb" alt="236 lines">
   <img src="https://img.shields.io/badge/%7E3%20MB%20RAM-5599bb?style=flat&label=idle&labelColor=222222&logo=speedtest&logoColor=5599bb" alt="about 3 MB RAM">
-  <img src="https://img.shields.io/badge/Linux-bbbbbb?style=flat&labelColor=222222&logo=linux&logoColor=bbbbbb" alt="Linux">
   <img src="https://img.shields.io/badge/X11%20%2F%20Xlib-005577?style=flat&label=display&labelColor=222222&logo=x.org&logoColor=005577" alt="X11 / Xlib">
-  <img src="https://img.shields.io/badge/make-bbbbbb?style=flat&label=build&labelColor=222222&logo=gnu&logoColor=bbbbbb" alt="make">
-  <img src="https://img.shields.io/badge/AUR-5599bb?style=flat&label=package&labelColor=222222&logo=archlinux&logoColor=5599bb" alt="AUR">
 </p>
 
 > [!TIP]
