@@ -239,16 +239,16 @@ The window is an override-redirect X window, one line tall by default, full scre
 
 ## Contributing
 
-Found a bug or a rough edge. Open an issue with steps to reproduce and your setup.
+Found a bug, or something just feels off? Open an issue. Steps to reproduce and your setup, that's all I need.
 
 <details>
 <summary>Code requirements</summary>
 
-- No external dependencies beyond Xlib
-- No over-abstraction or wrapper layers
-- Compiles clean: `gcc -std=c99 -pedantic -Wall -Wextra`
-- Optional features behind `#ifdef` or compile-time constants are considered. Core event loop changes are reviewed carefully.
-- Stay under 300 lines total
+- Xlib and nothing else
+- No wrappers, no abstraction layers
+- Clean build: `gcc -std=c99 -pedantic -Wall -Wextra`
+- Optional stuff goes behind `#ifdef` or a compile-time constant. Core event loop changes get a second look from me.
+- Under 300 lines
 
 </details>
 
