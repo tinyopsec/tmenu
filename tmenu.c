@@ -20,8 +20,6 @@
 #define MAXTEXT  256
 #define BUFSZ    4096
 
-typedef struct { char *s; } It;
-
 static Display *dp;
 static Window w, root;
 static int scr, sh, wh, ww;
@@ -29,9 +27,9 @@ static GC gc;
 static Pixmap pm;
 static XFontStruct *fs;
 static int fa, fh;
-static It its[MAXITEMS];
+static char *its[MAXITEMS];
 static int ni = 0;
-static It *mt[MAXITEMS];
+static char *mt[MAXITEMS];
 static int nm = 0, sel = 0, hoff = 0;
 static char tb[MAXTEXT];
 static int tl = 0;
@@ -54,74 +52,63 @@ static void rd(void) {
 		if(l && buf[l-1] == '\n') buf[--l] = 0;
 		if(l && buf[l-1] == '\r') buf[--l] = 0;
 		if(!l) continue;
-		if(!(its[ni].s = strdup(buf))) exit(1);
+		if(!(its[ni] = strdup(buf))) exit(1);
 		if(++ni >= MAXITEMS) break;
 	}
 }
 
+static void lc(char *d, const char *s) { while((*d++ = tolower((unsigned char)*s++))); }
+
 static void fi(void) {
-	int i, j, p, q;
 	char lo[MAXTEXT], tmp[BUFSZ];
-	sel = 0; hoff = 0;
-	for(i = 0; (lo[i] = tolower((unsigned char)tb[i])); i++);
-	if(!tl) {
-		for(nm = 0; nm < ni; nm++) mt[nm] = &its[nm];
-		return;
+	int i;
+	sel = hoff = nm = 0;
+	lc(lo, tb);
+	for(i = 0; i < ni; i++) {
+		lc(tmp, its[i]);
+		if(!tl || !strncmp(tmp, lo, tl)) mt[nm++] = its[i];
 	}
-	for(p = 0, i = 0; i < ni; i++) {
-		for(j = 0; (tmp[j] = tolower((unsigned char)its[i].s[j])); j++);
-		if(strncmp(tmp, lo, tl) == 0) mt[p++] = &its[i];
+	if(!tl) return;
+	for(i = 0; i < ni; i++) {
+		lc(tmp, its[i]);
+		if(strncmp(tmp, lo, tl) && strstr(tmp, lo)) mt[nm++] = its[i];
 	}
-	for(q = 0, i = 0; i < ni; i++) {
-		for(j = 0; (tmp[j] = tolower((unsigned char)its[i].s[j])); j++);
-		if(strncmp(tmp, lo, tl) != 0 && strstr(tmp, lo)) mt[p + q++] = &its[i];
+}
+
+static int tw(const char *s) { return XTextWidth(fs, s, strlen(s)) + 8; }
+
+static int pw(void) { return pr && *pr ? tw(pr) : 0; }
+
+static void item(int i, int x, int y, int iw) {
+	if(i == sel) {
+		XSetForeground(dp, gc, col[3]);
+		XFillRectangle(dp, pm, gc, x, y, iw, fh);
 	}
-	nm = p + q;
+	XSetForeground(dp, gc, col[i == sel ? 2 : 0]);
+	XDrawString(dp, pm, gc, x + 4, y + fa, mt[i], strlen(mt[i]));
 }
 
 static void dr(void) {
-	int x = 0, y, i, mx, cx;
+	int x = 0, i, mx, cx, iw;
 	XSetForeground(dp, gc, col[1]);
 	XFillRectangle(dp, pm, gc, 0, 0, ww, wh);
-	if(pr && *pr) {
-		int pl = strlen(pr);
-		int pw = XTextWidth(fs, pr, pl) + 8;
+	if(pw()) {
+		x = pw();
 		XSetForeground(dp, gc, col[3]);
-		XFillRectangle(dp, pm, gc, 0, 0, pw, fh);
+		XFillRectangle(dp, pm, gc, 0, 0, x, fh);
 		XSetForeground(dp, gc, col[2]);
-		XDrawString(dp, pm, gc, 4, fa, pr, pl);
-		x = pw;
+		XDrawString(dp, pm, gc, 4, fa, pr, strlen(pr));
 	}
 	XSetForeground(dp, gc, col[0]);
 	XDrawString(dp, pm, gc, x + 4, fa, tb, tl);
 	cx = x + 4 + XTextWidth(fs, tb, tl);
 	XDrawLine(dp, pm, gc, cx, 2, cx, fh - 2);
 	if(ln > 0) {
-		for(i = hoff; i < nm && i < hoff + ln; i++) {
-			int sl = strlen(mt[i]->s);
-			y = fh * (i - hoff + 1);
-			if(i == sel) {
-				XSetForeground(dp, gc, col[3]);
-				XFillRectangle(dp, pm, gc, 0, y, ww, fh);
-				XSetForeground(dp, gc, col[2]);
-			} else {
-				XSetForeground(dp, gc, col[0]);
-			}
-			XDrawString(dp, pm, gc, 4, y + fa, mt[i]->s, sl);
-		}
+		for(i = hoff; i < nm && i < hoff + ln; i++)
+			item(i, 0, fh * (i - hoff + 1), ww);
 	} else {
-		mx = cx + 12;
-		for(i = hoff; i < nm && mx < ww; i++) {
-			int sl = strlen(mt[i]->s);
-			int iw = XTextWidth(fs, mt[i]->s, sl) + 8;
-			if(i == sel) {
-				XSetForeground(dp, gc, col[3]);
-				XFillRectangle(dp, pm, gc, mx, 0, iw, fh);
-				XSetForeground(dp, gc, col[2]);
-			} else {
-				XSetForeground(dp, gc, col[0]);
-			}
-			XDrawString(dp, pm, gc, mx + 4, fa, mt[i]->s, sl);
+		for(i = hoff, mx = cx + 12; i < nm && mx < ww; i++) {
+			item(i, mx, 0, iw = tw(mt[i]));
 			mx += iw;
 		}
 	}
@@ -148,58 +135,40 @@ static void scroll_to(int s) {
 		return;
 	}
 	if(s < hoff) hoff = s;
-	ox = (pr && *pr ? XTextWidth(fs, pr, strlen(pr)) + 8 : 0)
-	     + 4 + XTextWidth(fs, tb, tl) + 12;
+	ox = pw() + 4 + XTextWidth(fs, tb, tl) + 12;
 	while(1) {
 		mx = ox;
-		for(i = hoff; i < nm; i++) {
-			int sl = strlen(mt[i]->s);
-			int iw = XTextWidth(fs, mt[i]->s, sl) + 8;
-			if(mx + iw > ww) break;
-			mx += iw;
-		}
+		for(i = hoff; i < nm; i++)
+			if((mx += tw(mt[i])) > ww) break;
 		if(s < i) break;
 		hoff++;
 	}
 	sel = s;
 }
 
+static void mv(int d) {
+	if(sel + d >= 0 && sel + d < nm) { scroll_to(sel + d); dr(); }
+}
+
 static void kp(XKeyEvent *e) {
 	char buf[32] = {0};
 	KeySym ks;
 	XLookupString(e, buf, sizeof buf, &ks, NULL);
-	if(e->state & ControlMask) {
-		switch(ks) {
-		case XK_u: tl = 0; tb[0] = 0; fi(); dr(); return;
-		case XK_w:
-			while(tl && tb[tl-1] == ' ') tb[--tl] = 0;
-			while(tl && tb[tl-1] != ' ') tb[--tl] = 0;
-			fi(); dr(); return;
-		case XK_k:
-			if(sel > 0) { scroll_to(sel - 1); dr(); }
-			return;
-		case XK_j:
-			if(sel < nm - 1) { scroll_to(sel + 1); dr(); }
-			return;
-		}
+	if(e->state & ControlMask) switch(ks) {
+	case XK_u: tl = 0; tb[0] = 0; fi(); dr(); return;
+	case XK_w:
+		while(tl && tb[tl-1] == ' ') tb[--tl] = 0;
+		while(tl && tb[tl-1] != ' ') tb[--tl] = 0;
+		fi(); dr(); return;
+	case XK_k: mv(-1); return;
+	case XK_j: mv(1); return;
 	}
 	switch(ks) {
 	case XK_Escape: exit(1);
-	case XK_Return:
-	case XK_KP_Enter:
-		run(nm > 0 ? mt[sel]->s : tb);
-		return;
-	case XK_BackSpace:
-		if(tl) { tb[--tl] = 0; fi(); dr(); }
-		return;
-	case XK_Up:
-	case XK_Left:
-		if(sel > 0) { scroll_to(sel - 1); dr(); }
-		return;
-	case XK_Down:
-	case XK_Right:
-		if(sel < nm - 1) { scroll_to(sel + 1); dr(); }
-		return;
+	case XK_Return: case XK_KP_Enter: run(nm > 0 ? mt[sel] : tb); return;
+	case XK_BackSpace: if(tl) { tb[--tl] = 0; fi(); dr(); } return;
+	case XK_Up: case XK_Left: mv(-1); return;
+	case XK_Down: case XK_Right: mv(1); return;
 	default:
 		if(!iscntrl((unsigned char)buf[0]) && tl < MAXTEXT - 1) {
 			tb[tl++] = buf[0];
@@ -209,22 +178,17 @@ static void kp(XKeyEvent *e) {
 	}
 }
 
+static void nap(long ns) { struct timespec ts = {0, ns}; nanosleep(&ts, NULL); }
+
 static void grabfocus(void) {
-	struct timespec ts = {0, 10000000};
-	Window fw;
-	int di, i;
-	for(i = 0; i < 100; i++) {
-		XGetInputFocus(dp, &fw, &di);
-		if(fw == w) return;
-		XSetInputFocus(dp, w, RevertToParent, CurrentTime);
-		XSync(dp, 0);
-		nanosleep(&ts, NULL);
-	}
+	XSetInputFocus(dp, w, RevertToParent, CurrentTime);
+	XSync(dp, 0);
 }
 
 int main(int argc, char *argv[]) {
 	int i;
 	XSetWindowAttributes wa;
+	XEvent ev;
 	for(i = 1; i < argc; i++) {
 		if(!strcmp(argv[i], "-b")) top = 0;
 		else if(!strcmp(argv[i], "-l") && i+1 < argc) ln = atoi(argv[++i]);
@@ -235,8 +199,7 @@ int main(int argc, char *argv[]) {
 	scr = DefaultScreen(dp);
 	root = RootWindow(dp, scr);
 	sh = DisplayHeight(dp, scr);
-	if(!(fs = XLoadQueryFont(dp, FONT)))
-		if(!(fs = XLoadQueryFont(dp, "fixed"))) return 1;
+	if(!(fs = XLoadQueryFont(dp, FONT)) && !(fs = XLoadQueryFont(dp, "fixed"))) return 1;
 	fa = fs->ascent;
 	fh = fs->ascent + fs->descent + 2;
 	ww = DisplayWidth(dp, scr);
@@ -257,22 +220,17 @@ int main(int argc, char *argv[]) {
 	fi();
 	XMapRaised(dp, w);
 	XSync(dp, 0);
-	{
-		struct timespec ts = {0, 1000000};
-		for(i = 0; i < 1000; i++) {
-			if(XGrabKeyboard(dp, root, 1, GrabModeAsync, GrabModeAsync, CurrentTime) == GrabSuccess) break;
-			nanosleep(&ts, NULL);
-		}
-		if(i == 1000) return 1;
+	for(i = 0; i < 1000; i++) {
+		if(XGrabKeyboard(dp, root, 1, GrabModeAsync, GrabModeAsync, CurrentTime) == GrabSuccess) break;
+		nap(1000000);
 	}
+	if(i == 1000) return 1;
 	grabfocus();
 	dr();
-	{
-		XEvent ev;
-		while(!XNextEvent(dp, &ev))
-			if(ev.type == KeyPress) kp(&ev.xkey);
-			else if(ev.type == Expose && !ev.xexpose.count) dr();
-			else if(ev.type == DestroyNotify && ev.xdestroywindow.window == w) exit(1);
+	while(!XNextEvent(dp, &ev)) {
+		if(ev.type == KeyPress) kp(&ev.xkey);
+		else if(ev.type == Expose && !ev.xexpose.count) dr();
+		else if(ev.type == DestroyNotify && ev.xdestroywindow.window == w) exit(1);
 	}
 	return 0;
 }

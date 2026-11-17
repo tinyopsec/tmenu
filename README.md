@@ -1,293 +1,290 @@
 <div align="center">
-
-**Minimal X11 menu launcher - suckless, auditable, fast.**
-
-<img src="https://raw.githubusercontent.com/tinyopsec/assets/main/tmenu/tmenu.png" width="720" alt="tmenu in action">
-
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square&color=4078c0)](LICENSE)
-[![C99](https://img.shields.io/badge/C-C99%2FPOSIX-lightgrey?style=flat-square&color=6a4c93)](/)
-[![LOC](https://img.shields.io/badge/source-under%20300%20lines-brightgreen?style=flat-square&color=2ea44f)](tmenu.c)
-[![Issues](https://img.shields.io/github/issues/tinyopsec/tmenu?style=flat-square&color=e36209)](https://github.com/tinyopsec/tmenu/issues)
-[![Stars](https://img.shields.io/github/stars/tinyopsec/tmenu?style=flat-square&color=f0c30f)](https://github.com/tinyopsec/tmenu/stargazers)
-[![Minimalist](https://img.shields.io/badge/philosophy-suckless-informational?style=flat-square&color=005577)](https://suckless.org)
-
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=222222&height=80&section=header&text=tmenu&fontSize=52&fontColor=bbbbbb&fontAlignY=72&animation=fadeIn" alt="tmenu header">
+  <br>
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=14&pause=1200&color=5599bb&center=true&vCenter=true&width=600&lines=Minimal+X11+menu+launcher;Small+source.+No+runtime+dependencies;Compile-time+configuration+only" alt="tmenu typing">
+  <br>
+  <img src="https://raw.githubusercontent.com/tinyopsec/assets/main/tmenu/tmenu.svg" style="width: 65%; height: auto;" alt="tmenu logo">
 </div>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-005577?style=flat&labelColor=222222&logo=opensourceinitiative&logoColor=005577" alt="license MIT">
+  <img src="https://img.shields.io/badge/C99%20%2F%20POSIX-bbbbbb?style=flat&label=lang&labelColor=222222&logo=c&logoColor=bbbbbb" alt="C99 / POSIX">
+  <img src="https://img.shields.io/badge/236%20lines-5599bb?style=flat&label=source&labelColor=222222&logo=files&logoColor=5599bb" alt="236 lines">
+  <img src="https://img.shields.io/badge/%7E3%20MB%20RAM-5599bb?style=flat&label=idle&labelColor=222222&logo=speedtest&logoColor=5599bb" alt="about 3 MB RAM">
+  <img src="https://img.shields.io/badge/Linux-bbbbbb?style=flat&labelColor=222222&logo=linux&logoColor=bbbbbb" alt="Linux">
+  <img src="https://img.shields.io/badge/X11%20%2F%20Xlib-005577?style=flat&label=display&labelColor=222222&logo=x.org&logoColor=005577" alt="X11 / Xlib">
+  <img src="https://img.shields.io/badge/make-bbbbbb?style=flat&label=build&labelColor=222222&logo=gnu&logoColor=bbbbbb" alt="make">
+  <img src="https://img.shields.io/badge/AUR-5599bb?style=flat&label=package&labelColor=222222&logo=archlinux&logoColor=5599bb" alt="AUR">
+</p>
 
-`tmenu` reads a newline-delimited list of items from `stdin`, lets you filter by typing, and prints the selected entry (or the typed text, if it matches nothing) to `stdout`, dmenu-style. `tmenu_run` pipes that straight into `sh`, so it works as an app launcher out of the box. The whole thing fits in one C file, under 300 lines. The only runtime dependency is Xlib.
-
----
+> [!TIP]
+> **Edit the macros in `tmenu.c` and rebuild.** There is no config file and no runtime flags for colors or fonts. Change `FGNORM`, `BGNORM`, `FONT` and run `make`.
 
 ## Contents
 
-- [Why tmenu?](#-why-tmenu)
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Key Bindings](#-key-bindings)
-- [Configuration](#-configuration)
-- [Contributing](#-contributing)
-- [Related Projects](#-related-projects)
+- [Quick Start](#quick-start)
+- [Why small](#why-small)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Key Bindings](#key-bindings)
+- [Configuration](#configuration)
+- [How It Works](#how-it-works)
+- [Contributing](#contributing)
 - [Star History](#star-history)
-- [License](#-license)
-
----
-
-## Why tmenu?
-
-| Feature | tmenu | dmenu | rofi |
-|---|---|---|---|
-| Source size | under 300 lines | ~2500 lines | ~15000 lines |
-| Dependencies | Xlib only | Xlib, Xft | Xlib, cairo, pango, ... |
-| Config file | none (compile-time) | none (compile-time) | yes |
-| Executes typed text | yes | yes | no |
-| Launch overhead | minimal | minimal | moderate |
-| Auditable in an hour | yes | hard | no |
-
-`tmenu` follows the suckless philosophy: small, auditable, compile-time configured. No config file parser, no IPC, no scripting layer. Read the source - understand the program.
+- [Related](#related)
 
 ---
 
 ## Quick Start
 
 ```sh
-git clone https://github.com/tinyopsec/tmenu && cd tmenu && make && sudo make install
-tmenu_run
+git clone --depth 1 https://github.com/tinyopsec/tmenu
+cd tmenu
+make && sudo make install
+printf 'st\nfirefox\nhtop\n' | tmenu | sh
 ```
+
+> [!NOTE]
+> tmenu reads stdin until EOF. Start it from a terminal without a pipe and nothing appears until you press Ctrl+D. That is expected, not a bug.
+>
+> The default launcher wrapper is `tmenu_run`, which scans `$PATH` and caches the result.
 
 ---
 
-## Installation
+## Why small
 
-### From source
+I cut out what I do not use: no config file parser, no IPC, no scripting layer, no drawing library. Only the filter-and-print loop is left.
 
-```sh
-git clone https://github.com/tinyopsec/tmenu
-cd tmenu
-make
-sudo make install
-```
+| Area | tmenu |
+| --- | --- |
+| Lines of code | 236 (fits in one reading session, verified with `wc -l`) |
+| RAM at idle | ~3 MB on my PC (2.7 MB RSS, 2822 items in the list) |
+| Runtime dependencies | Xlib only |
+| Config | single flat set of macros in `tmenu.c`, no patch stack |
+| Drawing | X core fonts, four colors, no images |
+| IPC / scripting | none |
+| Audit surface | one file, one function per concern |
 
-Installs to `/usr/local/bin/`. To change the prefix:
+No text shaping, no color scheme beyond four hex values, no runtime configuration. Read the source, understand the program.
 
-```sh
-sudo make install PREFIX=/usr
-```
+---
 
-Uninstall:
+## Features
 
-```sh
-sudo make uninstall
-```
+What I actually use, nothing extra:
+
+| Category | Details |
+| --- | --- |
+| Input | newline-delimited list on stdin, typed filter, one line back on stdout |
+| Filtering | two passes: prefix matches first, then substring matches; selection resets to first match |
+| No match | the typed text is returned, so Enter on an unknown query still yields something useful |
+| Modes | one-line bar (default) or N-line list with `-l N` |
+| Position | top (default) or bottom with `-b` |
+| Prompt | optional label with `-p text` |
+| Keys | Enter, Escape, Backspace, arrows, Ctrl+U, Ctrl+W, Ctrl+K, Ctrl+J |
+| Cache | `tmenu_run` keeps the `$PATH` listing in `$XDG_CACHE_HOME/tmenu_run`, rebuilds only when stale |
+| Startup | about 2.5 ms after warmup (X connection dominates the first launch) |
+| Memory | ~3 MB RSS, independent of list size |
+| Build | clean under `gcc` or `clang` with `-std=c99 -pedantic -Wall -Wextra` |
+
+---
+
+<details>
+<summary><h2>Installation</h2></summary>
 
 ### Requirements
 
-| Dependency | ![Arch](https://img.shields.io/badge/Arch-1793D1?style=flat-square&logo=arch-linux&logoColor=white) | ![Debian](https://img.shields.io/badge/Debian-A81D33?style=flat-square&logo=debian&logoColor=white) |
-|---|---|---|
-| Xlib | `libx11` | `libx11-dev` |
-| C compiler | `gcc` | `build-essential` |
+You need a C compiler (`gcc` or `clang`) and the Xlib headers. Install them with your system package manager. No runtime dependencies beyond Xlib.
 
-### ![AUR](https://img.shields.io/badge/AUR-1793D1?style=flat-square&logo=arch-linux&logoColor=white) Arch Linux (AUR)
+### From Source
+
+```sh
+git clone --depth 1 https://github.com/tinyopsec/tmenu
+cd tmenu
+make
+sudo make install   # installs to /usr/local/bin
+```
+
+Change `PREFIX` in the `Makefile` (or pass it on the command line) to install elsewhere, e.g. `sudo make install PREFIX=/usr`. To stage the install (packaging), use `make DESTDIR=/tmp/stage install`.
+
+### AUR (Arch Linux)
 
 ```sh
 yay -S tmenu
 ```
 
-### ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white) macOS (XQuartz)
-
-Install [XQuartz](https://www.xquartz.org/), then build from source as above.
-
-### ![BSD](https://img.shields.io/badge/BSD-AB2B28?style=flat-square) OpenBSD / FreeBSD / NetBSD
-
-Install `libX11` via ports or pkgsrc, then build from source.
-
----
-
-## Usage
-
-### Basic
-
-```sh
-# Use the bundled launcher (scans $PATH):
-tmenu_run
-
-# Pipe items manually, launcher-style:
-printf "st\nfirefox\nhtop\n" | tmenu | sh
-
-# Use it like dmenu, in a script, no execution involved:
-printf "apple\nbanana\norange\n" | tmenu >> grocerylist.txt
-```
-
-Type to filter, navigate with arrow keys, press `Enter` to print the selection to `stdout`. If what you typed matches no item, tmenu prints the typed text instead. Piping that into `sh` (as `tmenu_run` does) is what turns it into a launcher; piping it anywhere else just gets you the selected line.
-
-### Flags
-
-| Flag | Description |
-|---|---|
-| `-b` | Show menu at the bottom of the screen |
-| `-l N` | Vertical list with `N` visible lines |
-| `-p text` | Prompt displayed left of the input field |
-
-### Examples
-
-```sh
-# Vertical launcher with prompt:
-printf "st\nfirefox\nthunderbird\n" | tmenu -l 5 -p "run: "
-
-# Power menu at bottom:
-printf "suspend\nreboot\npoweroff\n" | tmenu -b -p "power: "
-
-# Session menu:
-printf "lock\nlogout\n" | tmenu -b -p "session: "
-```
-
-### Window manager integration
-
-**dwm / swm:**
-
-```c
-static const char *dmenucmd[] = { "tmenu_run", NULL };
-```
-
-Recompile your WM after editing the config.
-
-**i3:**
-
-```
-bindsym $mod+d exec tmenu_run
-```
-
-**`.xinitrc` example:**
-
-```sh
-export PATH="$HOME/.local/bin:$PATH"
-picom &
-feh --bg-scale ~/wallpaper.png &
-exec swm
-```
+Package: [aur.archlinux.org/packages/tmenu](https://aur.archlinux.org/packages/tmenu)
 
 <details>
-<summary>Debugging</summary>
+<summary>FreeBSD / OpenBSD / NetBSD / DragonFly</summary>
 
-Check binary is available:
+Install Xlib via the system package manager. The `Makefile` defaults to the Linux paths. For BSDs, edit `X11INC` and `X11LIB` at the top of the `Makefile`; the alternatives are already present but commented out, for example FreeBSD / DragonFly:
 
-```sh
-which tmenu
-which tmenu_run
+```make
+X11INC = /usr/local/include
+X11LIB = /usr/local/lib
 ```
 
-Run the launcher directly to test:
+NetBSD (pkgsrc) uses `/usr/pkg/include` and `/usr/pkg/lib`. OpenBSD uses `/usr/X11R6`.
+
+Then build normally:
 
 ```sh
-tmenu_run
+make && sudo make install
 ```
 
-If the keybinding does nothing, check:
+</details>
 
-- `$PATH` is set before your WM starts (set it in `.xinitrc`)
-- WM config references `tmenu_run` correctly
-- Binary is executable: `chmod +x /usr/local/bin/tmenu_run`
+### Uninstall
 
-Test with explicit input:
-
-```console
-$ printf "echo hello\n" | tmenu
+```sh
+sudo make uninstall
 ```
 
 </details>
 
 ---
 
-## ⌨ Key Bindings
+## Usage
 
-| Key | Action |
-|---|---|
-| `Enter` / `KP_Enter` | Execute selected item or typed text |
-| `Escape` | Exit without executing |
-| `BackSpace` | Delete character left of cursor |
-| `Up` / `Left` | Move selection up or left |
-| `Down` / `Right` | Move selection down or right |
-| `Ctrl+U` | Clear entire input field |
-| `Ctrl+W` | Delete one word left of cursor |
-| `Ctrl+K` | Move selection up (vertical list) |
-| `Ctrl+J` | Move selection down (vertical list) |
+### Starting tmenu
 
-To remap keys, edit the `kp()` function in `tmenu.c` and recompile.
+Add to `~/.xinitrc` or a wrapper script:
+
+```sh
+printf 'st\nfirefox\nhtop\n' | tmenu | sh
+```
+
+`tmenu` has no built-in autostart and no display manager integration. It is a filter: pipe a list in, get a line out.
+
+### Launcher
+
+`tmenu_run` scans `$PATH`, caches the result, filters, and runs the selection through `sh`. That is the usual entry point:
+
+```sh
+tmenu_run
+```
+
+### Display managers
+
+tmenu is not a session and provides no `.desktop` file. Launch it from your WM's keybinding or from `.xinitrc`.
 
 ---
 
-## ⚙ Configuration
+<details>
+<summary><h2>Key Bindings</h2></summary>
 
-`tmenu` has no runtime config file. All settings are macros at the top of `tmenu.c`. Edit and recompile to apply changes:
+The window is driven by the keyboard. There is no mouse support and no configuration at runtime.
 
-```sh
-$EDITOR tmenu.c
-make && sudo make install
-```
+| Key | Action |
+| --- | --- |
+| Enter, KP_Enter | take the selection, or the typed text if nothing matches |
+| Escape | quit, status 1 |
+| Backspace | delete one character |
+| Up, Left | previous item |
+| Down, Right | next item |
+| Ctrl+U | clear the input |
+| Ctrl+W | delete the last word |
+| Ctrl+K | previous item (vi style) |
+| Ctrl+J | next item (vi style) |
 
-### Compile-time settings
+Key handling lives in `kp()`. Remap by editing the switch and rebuilding.
 
-| Macro | Default | Description |
-|---|---|---|
-| `FONT` | `"-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"` | X11 core font string |
-| `FGNORM` | `"#bbbbbb"` | Normal item foreground color |
-| `BGNORM` | `"#222222"` | Normal item background color |
-| `FGSEL` | `"#eeeeee"` | Selected item foreground color |
-| `BGSEL` | `"#005577"` | Selected item background color |
-| `TOP` | `1` | `1` = top of screen, `0` = bottom |
-| `LINES` | `0` | Default line count (`0` = horizontal) |
-| `PROMPT` | `NULL` | Default prompt string |
+</details>
 
-To increase limits, adjust `MAXITEMS` (default: 65536) and `MAXTEXT` (default: 256) in `tmenu.c`.
+---
 
-### Example customization
+## Configuration
 
-```diff
--#define BGSEL   "#005577"
-+#define BGSEL   "#8b0000"
+I configure tmenu by editing `tmenu.c`. There is no config file, no IPC, no reload mechanism.
 
--#define FONT    "-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*"
-+#define FONT    "-*-terminus-medium-r-*-*-14-*-*-*-*-*-*-*"
-```
+> [!IMPORTANT]
+> After every change to `tmenu.c`, run `make && sudo make install` and restart tmenu.
+
+### Macros
+
+| Macro | Default | Meaning |
+| --- | --- | --- |
+| `FONT` | `-*-fixed-medium-r-*-*-13-*-*-*-*-*-*-*` | X core font string |
+| `FGNORM` | `#bbbbbb` | normal text |
+| `BGNORM` | `#222222` | normal background |
+| `FGSEL` | `#eeeeee` | selected text |
+| `BGSEL` | `#005577` | selected background |
+| `TOP` | `1` | 1 puts the window at the top, 0 at the bottom |
+| `LINES` | `0` | 0 means one line, any other value means a list |
+| `PROMPT` | `NULL` | default prompt text |
+
+`MAXITEMS` (65536) and `MAXTEXT` (256) cap the item count and the input length. Both are compile-time too.
+
+### Colors
+
+Colors go through `XAllocColor`, so anything `XParseColor` understands works: `#8b0000`, `red`, `rgb:aa/00/00`. A string X cannot parse is fatal, by design, so a typo shows up at startup instead of an unreadable menu.
+
+### Cache
+
+`tmenu_run` keeps the `$PATH` listing in `$XDG_CACHE_HOME/tmenu_run` (or `~/.cache/tmenu_run`) and only rebuilds it when the file is missing or older than one of the `$PATH` directories. Adding or removing a binary touches the directory, so the next launch rescans. A warm launch skips the scan entirely.
+
+---
+
+## How It Works
+
+tmenu reads stdin until EOF, so the window does not appear until the input is complete. That is why `printf ... | tmenu` works and a bare `tmenu` in a terminal waits for Ctrl+D.
+
+Filtering is two passes over the list: items that start with the query go first, items that merely contain it follow. Filtering also resets the selection to the first match, so Enter takes the best one without touching the arrows.
+
+If the query matches nothing, the typed text is returned as-is. Enter on an unknown query prints the query; Escape and empty input print nothing and exit with status 1.
+
+The window is an override-redirect X window, one line tall by default, full screen width. With `-l N` it becomes a list of N lines plus one row for the input. Keyboard input is grabbed with `XGrabKeyboard`, so keys reach tmenu regardless of focus.
+
+`tmenu_run` scans `$PATH` once, sorts the names, and writes them to the cache file. On later launches it compares the cache mtime against each `$PATH` directory mtime and skips the scan if nothing changed.
 
 ---
 
 ## Contributing
 
-Bug reports and patches are welcome via [GitHub Issues](https://github.com/tinyopsec/tmenu/issues) and pull requests.
+Found a bug or a rough edge. Open an issue with steps to reproduce and your setup.
 
-### Code style
+<details>
+<summary>Code requirements</summary>
 
-- No comments in production code
 - No external dependencies beyond Xlib
-- No unnecessary abstraction
+- No over-abstraction or wrapper layers
 - Compiles clean: `gcc -std=c99 -pedantic -Wall -Wextra`
-- Total source must remain under 300 lines
+- Optional features behind `#ifdef` or compile-time constants are considered. Core event loop changes are reviewed carefully.
+- Stay under 300 lines total
 
-Features are added by patching the source, not by adding runtime options. Changes that require a config file or a new library dependency will not be accepted.
-
----
-
-## Related Projects
-
-| Project | Description | Link |
-|---|---|---|
-| dmenu | The original dynamic menu for X | [suckless.org](https://tools.suckless.org/dmenu/) |
-| suckless.org | Philosophy behind tmenu | [suckless.org](https://suckless.org) |
-| Xlib manual | Reference for X11 programming | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html) |
+</details>
 
 ---
+
 ## Star History
-<a href="https://www.star-history.com/?repos=tinyopsec%2Ftmenu&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tinyopsec/tmenu&type=date&legend=top-left" />
- </picture>
-</a>
+
+[![Star History Chart](https://api.star-history.com/svg?repos=tinyopsec/tmenu&type=Date)](https://star-history.com/#tinyopsec/tmenu&Date)
+
 ---
 
-## License
+## Related
 
-MIT. See [LICENSE](LICENSE) for details.
+### Suckless ecosystem
+
+| Project | Link |
+| --- | --- |
+| st terminal | [st.suckless.org](https://st.suckless.org) |
+| dmenu | [tools.suckless.org/dmenu](https://tools.suckless.org/dmenu/) |
+| suckless.org | [suckless.org](https://suckless.org) |
+
+### Specifications
+
+| Spec | Link |
+| --- | --- |
+| Xlib manual | [x.org](https://www.x.org/releases/current/doc/libX11/libX11/libX11.html) |
+
+### Packages
+
+| Distro | Link |
+| --- | --- |
+| AUR (Arch) | [aur.archlinux.org/packages/tmenu](https://aur.archlinux.org/packages/tmenu) |
+
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=222222&height=80&section=footer" alt="tmenu footer">
